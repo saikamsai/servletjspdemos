@@ -4,27 +4,34 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@WebServlet("/updateServlet")
+
+@WebServlet(urlPatterns="/updateServlet",loadOnStartup=1)
+//preinitialization is above step
 public class UpdateServlet extends HttpServlet {
 
 	Connection connection;
 
 	@Override
-	public void init() throws ServletException {
+	public void init(ServletConfig config) throws ServletException {
 
 		try {
-			System.out.println("UpdateUserSevlet.init() method. DB connection created");
+			System.out.println("UpdateServlet init");
+			ServletContext context = config.getServletContext();
 			Class.forName("com.mysql.jdbc.Driver");
-			connection = DriverManager.getConnection("jdbc:mysql://localhost/mydb", "root", "23@Swetha");
+			connection = DriverManager.getConnection(context.getInitParameter("dburl"),
+					context.getInitParameter("dbuser"), context.getInitParameter("dbpassword"));
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		} catch (SQLException e) {
@@ -32,6 +39,7 @@ public class UpdateServlet extends HttpServlet {
 		}
 
 	}
+
 
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -41,11 +49,10 @@ public class UpdateServlet extends HttpServlet {
 		String password = request.getParameter("password");
 
 
-		try (Statement statement = connection.createStatement();) {
-
-			String query = "update user set password='" + password + "' where email = '" + email + "'";
-			System.out.println("Query being executed: " + query);
-			int rowsUpdated = statement.executeUpdate(query);
+		try (PreparedStatement statement = connection.prepareStatement("update user set password=?where email=?");) {
+			statement.setString(1, password);
+			statement.setString(2, email);
+			int rowsUpdated = statement.executeUpdate();
 			System.out.println("Number of rows Update: " + rowsUpdated);
 
 			PrintWriter pw = response.getWriter();
