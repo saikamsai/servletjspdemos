@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- hibernate mapping to point the jsp to the database -->
+<hibernate-mapping package="com.example">
+
+	<class name="Pets" table="pets">
+		<id name="id" column="ID">
+			<generator class="native" />
+		</id>
+		<property column="NAME" type="string" name="name" />
+		<property column="COLOR" type="string" name="color" />
+		<property column="PRICE" type="number" name="price" />
+
+	</class>
+</hibernate-mapping>
